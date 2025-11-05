@@ -1,41 +1,59 @@
-import {useAuth} from '../context/AuthContext';
-import {Link} from 'react-router-dom';
+"use client"
 
-export default function Dashboard() {
-    const {user} = useAuth();
+import {useNavigate} from "react-router-dom"
+import {useAuth} from "../context/AuthContext"
+import {useEffect} from "react"
+
+export const Dashboard = () => {
+    const {user, loading} = useAuth()
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        if (!loading && (!user || user.role !== "admin")) {
+            navigate("/")
+        }
+    }, [user, loading, navigate])
+
+    if (loading) {
+        return (
+            <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="text-center">Loading...</div>
+            </main>
+        )
+    }
+
+    if (!user || user.role !== "admin") {
+        return null
+    }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <nav className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 items-center">
-                        <h1 className="text-xl font-semibold">Admin Dashboard</h1>
-                        <Link to="/" className="text-indigo-600 hover:underline">Back to Home</Link>
-                    </div>
-                </div>
-            </nav>
+        <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <h1 className="mb-8 text-3xl font-bold text-gray-900">Welcome, Admin</h1>
 
-            <main className="max-w-7xl mx-auto px-4 py-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h2 className="text-2xl font-bold mb-4">Welcome, {user?.name}</h2>
-                    <p className="text-gray-600 mb-6">You are logged in as <strong>Admin</strong>.</p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-blue-50 p-6 rounded-lg text-center">
-                            <h3 className="text-lg font-semibold">Manage Products</h3>
-                            <p className="text-gray-600">Add, edit, delete products</p>
-                        </div>
-                        <div className="bg-green-50 p-6 rounded-lg text-center">
-                            <h3 className="text-lg font-semibold">View Orders</h3>
-                            <p className="text-gray-600">See all customer orders</p>
-                        </div>
-                        <div className="bg-purple-50 p-6 rounded-lg text-center">
-                            <h3 className="text-lg font-semibold">User Management</h3>
-                            <p className="text-gray-600">Control user roles</p>
-                        </div>
-                    </div>
+            <div className="grid gap-6 md:grid-cols-3">
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-gray-900">Manage Products</h2>
+                    <p className="mt-2 text-gray-600">Create, edit, and delete products</p>
+                    <button className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Go to
+                        Products
+                    </button>
                 </div>
-            </main>
-        </div>
-    );
+
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-gray-900">View Orders</h2>
+                    <p className="mt-2 text-gray-600">Monitor and manage customer orders</p>
+                    <button className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Go to
+                        Orders
+                    </button>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-gray-900">User Management</h2>
+                    <p className="mt-2 text-gray-600">Manage users and their roles</p>
+                    <button className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">Go to Users
+                    </button>
+                </div>
+            </div>
+        </main>
+    )
 }

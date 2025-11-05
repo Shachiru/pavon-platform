@@ -1,75 +1,112 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import axios from 'axios';
+/// <reference types="vite/client" />
+"use client"
+
+import type React from "react"
+import {createContext, useContext, useState, useEffect, type ReactNode} from "react"
+import axios from "axios"
 
 interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: 'user' | 'admin';
+    id: string
+    name: string
+    email: string
+    role: "user" | "admin"
 }
 
 interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    signup: (name: string, email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
-    googleLogin: () => void;
+    user: User | null
+    loading: boolean
+    error: string | null
+    login: (email: string, password: string) => Promise<void>
+    signup: (name: string, email: string, password: string) => Promise<void>
+    logout: () => Promise<void>
+    googleLogin: () => void
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const API_URL = 'http://localhost:5001/api';
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api",
+    withCredentials: true,
+})
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+    const [user, setUser] = useState<User | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
-    // Check auth on mount
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchMe = async () => {
             try {
-                const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-                setUser(res.data.data.user);
-            } catch (err) {
-                setUser(null);
+                const response = await api.get("/auth/me")
+                setUser(response.data)
+            } catch {
+                setUser(null)
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
-        fetchUser();
-    }, []);
+        }
+
+        fetchMe()
+    }, [])
 
     const login = async (email: string, password: string) => {
-        await axios.post(`${API_URL}/auth/login`, { email, password }, { withCredentials: true });
-        const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-        setUser(res.data.data.user);
-    };
+        try {
+            setError(null)
+            const response = await api.post("/auth/login", {email, password})
+            setUser(response.data)
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err) ? err.response?.data?.message : "Login failed"
+            setError(message || "Login failed")
+            throw err
+        }
+    }
 
     const signup = async (name: string, email: string, password: string) => {
-        await axios.post(`${API_URL}/auth/signup`, { name, email, password }, { withCredentials: true });
-        const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-        setUser(res.data.data.user);
-    };
+        try {
+            setError(null)
+            const response = await api.post("/auth/signup", {name, email, password})
+            setUser(response.data)
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err) ? err.response?.data?.message : "Signup failed"
+            setError(message || "Signup failed")
+            throw err
+        }
+    }
 
     const logout = async () => {
-        await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
-        setUser(null);
-    };
+        try {
+            setError(null)
+            await api.post("/auth/logout")
+            setUser(null)
+        } catch (err: unknown) {
+            const message = axios.isAxiosError(err) ? err.response?.data?.message : "Logout failed"
+            setError(message || "Logout failed")
+            throw err
+        }
+    }
 
     const googleLogin = () => {
-        window.location.href = `${API_URL}/auth/google`;
-    };
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001"
+        window.location.href = `${baseUrl}/api/auth/google`
+    }
 
-    return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout, googleLogin }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    const value: AuthContextType = {
+        user,
+        loading,
+        error,
+        login,
+        signup,
+        logout,
+        googleLogin,
+    }
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within AuthProvider');
-    return context;
-};
+    const context = useContext(AuthContext)
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider")
+    }
+    return context
+}
