@@ -20,7 +20,7 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
     res.status(201).json({
         status: 'success',
         token,
-        data: {user: {id: user._id, name, email, role}},
+        data: {user: {id: user._id, name, email, role, avatar: user.avatar}},
     });
 });
 
@@ -42,7 +42,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     res.status(200).json({
         token,
         status: 'success',
-        data: {user: {id: user._id, name: user.name, email, role: user.role}},
+        data: {user: {id: user._id, name: user.name, email, role: user.role, avatar: user.avatar}},
     });
 });
 
@@ -52,5 +52,17 @@ export const logout = (req: Request, res: Response) => {
 };
 
 export const getMe = catchAsync(async (req: Request, res: Response) => {
-    res.status(200).json({status: 'success', data: {user: req.user}});
+    const user = req.user;
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user: {
+                id: user?._id,
+                name: user?.name,
+                email: user?.email,
+                role: user?.role,
+                avatar: user?.avatar
+            }
+        }
+    });
 });

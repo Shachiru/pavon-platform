@@ -10,6 +10,7 @@ interface User {
     name: string
     email: string
     role: "user" | "admin"
+    avatar?: string
 }
 
 interface AuthContextType {
@@ -38,7 +39,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         const fetchMe = async () => {
             try {
                 const response = await api.get("/auth/me")
-                setUser(response.data)
+                setUser(response.data.data.user)
             } catch {
                 setUser(null)
             } finally {
@@ -53,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         try {
             setError(null)
             const response = await api.post("/auth/login", {email, password})
-            setUser(response.data)
+            setUser(response.data.data.user)
         } catch (err: unknown) {
             const message = axios.isAxiosError(err) ? err.response?.data?.message : "Login failed"
             setError(message || "Login failed")
@@ -65,7 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         try {
             setError(null)
             const response = await api.post("/auth/signup", {name, email, password})
-            setUser(response.data)
+            setUser(response.data.data.user)
         } catch (err: unknown) {
             const message = axios.isAxiosError(err) ? err.response?.data?.message : "Signup failed"
             setError(message || "Signup failed")
