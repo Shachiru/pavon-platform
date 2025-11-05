@@ -19,6 +19,7 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
 
     res.status(201).json({
         status: 'success',
+        token,
         data: {user: {id: user._id, name, email, role}},
     });
 });
@@ -39,6 +40,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     setAuthCookie(res, token);
 
     res.status(200).json({
+        token,
         status: 'success',
         data: {user: {id: user._id, name: user.name, email, role: user.role}},
     });
