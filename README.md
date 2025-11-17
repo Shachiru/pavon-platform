@@ -555,7 +555,7 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-For support, email support@pavon-platform.com or open an issue in the repository.
+For support, email shachirurashmika35@gmail.com or open an issue in the repository.
 
 ---
 
