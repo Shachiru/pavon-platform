@@ -11,6 +11,7 @@ A full-stack MERN (MongoDB, Express, React, Node.js) e-commerce platform with au
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
 - [Running the Application](#running-the-application)
+- [Admin Login](#admin-login)
 - [API Endpoints](#api-endpoints)
 - [Models](#models)
 - [Authentication](#authentication)
@@ -255,6 +256,80 @@ npm start
 The application will be available at:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:5001
+
+## 🔐 Admin Login
+
+### Default Admin Credentials
+
+After setting up the admin user, use these credentials to login:
+
+```
+Email:    admin@example.com
+Password: Admin123!
+```
+
+### Creating the Admin User
+
+Before you can login as admin, you need to create the admin user in the database:
+
+```bash
+cd backend
+npm run create-admin
+```
+
+This will create an admin user with the default credentials above.
+
+### Resetting Admin Password
+
+If you forget the admin password or need to reset it:
+
+```bash
+cd backend
+npm run reset-admin-password
+```
+
+This will reset the password back to `Admin123!`
+
+### How Admin Access Works
+
+1. **Admin Email Whitelist**: Users who sign up with emails listed in the `ADMIN_EMAILS` environment variable automatically receive admin role
+2. **Default Admin Emails**: `admin@example.com`, `superadmin@example.com`
+3. **Add More Admins**: Edit the `ADMIN_EMAILS` variable in `backend/.env`:
+   ```env
+   ADMIN_EMAILS=admin@example.com,superadmin@example.com,newemail@example.com
+   ```
+4. **Login**: Go to http://localhost:5173/login and use the admin credentials
+
+### Admin vs Regular Users
+
+| Feature | Regular User | Admin |
+|---------|-------------|-------|
+| Browse Products | ✅ | ✅ |
+| Add to Cart | ✅ | ✅ |
+| Place Orders | ✅ | ✅ |
+| View Own Orders | ✅ | ✅ |
+| Create Products | ❌ | ✅ |
+| Update Products | ❌ | ✅ |
+| Delete Products | ❌ | ✅ |
+| Manage All Orders | ❌ | ✅ |
+| Update Order Status | ❌ | ✅ |
+
+### Troubleshooting Admin Login
+
+**Problem: "Invalid email or password"**
+- Run `npm run reset-admin-password` in the backend directory
+- Ensure the backend server is running
+- Check that MongoDB is connected
+
+**Problem: User exists but not admin**
+- Verify the email is listed in `ADMIN_EMAILS` in `backend/.env`
+- Restart the backend server after changing `.env`
+- Emails are case-insensitive
+
+**Problem: Cannot create admin user**
+- Ensure MongoDB is running and connected
+- Check `MONGO_URI` in `backend/.env`
+- Verify the backend dependencies are installed
 
 ## 🔌 API Endpoints
 
