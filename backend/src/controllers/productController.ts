@@ -1,16 +1,7 @@
 import { Request, Response } from 'express';
 import Product from '../models/Product';
-import cloudinary from '../config/cloudinary';
 import { catchAsync } from '../utils/catchAsync';
 import AppError from '../utils/AppError';
-
-export const uploadImages = async (files: any[]) => {
-    const uploadPromises = files.map(file =>
-        cloudinary.uploader.upload(file.path, { folder: 'pavon/products' })
-    );
-    const results = await Promise.all(uploadPromises);
-    return results.map(r => r.secure_url);
-};
 
 const verifyProductOwnership = async (req: Request, productId: string) => {
     if (!req.user) throw new AppError('Not authenticated', 401);
@@ -29,11 +20,15 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     if (!req.user) throw new AppError('Not authenticated', 401);
     const userId = req.user._id;
 
-    const { name, description, price, category, stock } = req.body;
-    const images = await uploadImages(req.files as any[]);
+    const { name, description, price, category, stock, images } = req.body;
 
     const product = await Product.create({
-        name, description, price, category, stock, images,
+        name,
+        description,
+        price,
+        category,
+        stock,
+        images,
         seller: userId,
     });
 
@@ -65,10 +60,15 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
 export const updateProduct = catchAsync(async (req: Request, res: Response) => {
     const product = await verifyProductOwnership(req, req.params.id);
 
-    Object.assign(product, req.body);
-    if (req.files) {
-        product.images = await uploadImages(req.files as any[]);
-    }
+    const { name, description, price, category, stock, images } = req.body;
+
+    if (name !== undefined) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (category !== undefined) product.category = category;
+    if (stock !== undefined) product.stock = stock;
+    if (images !== undefined) product.images = images;
+
     await product.save();
 
     res.status(200).json({ status: 'success', data: { product } });
