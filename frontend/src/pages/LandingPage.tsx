@@ -70,14 +70,22 @@ export const LandingPage = () => {
                                 <p className="text-gray-600 mb-6">
                                     Explore our products and start shopping today!
                                 </p>
-                                {user.role === "admin" && (
+                                <div className="flex gap-4 justify-center">
                                     <button
-                                        onClick={() => navigate("/dashboard")}
-                                        className="px-8 py-4 text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-2xl hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
+                                        onClick={() => navigate("/home")}
+                                        className="px-8 py-4 text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 transition-all duration-300"
                                     >
-                                        🚀 Go to Dashboard
+                                        🛍️ View Products
                                     </button>
-                                )}
+                                    {user.role === "admin" && (
+                                        <button
+                                            onClick={() => navigate("/dashboard")}
+                                            className="px-8 py-4 text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-2xl hover:shadow-emerald-500/50 hover:scale-105 transition-all duration-300"
+                                        >
+                                            🚀 Dashboard
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}

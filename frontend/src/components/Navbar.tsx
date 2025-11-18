@@ -39,6 +39,16 @@ export const Navbar = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            {user && (
+                                <button
+                                    onClick={() => navigate("/home")}
+                                    className="relative px-6 py-2.5 text-gray-700 font-medium hover:text-purple-600 transition-colors duration-300 group"
+                                >
+                                    <span className="relative z-10">Products</span>
+                                    <div
+                                        className="absolute inset-0 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                                </button>
+                            )}
                             {!user ? (
                                 <>
                                     <button
