@@ -12,13 +12,29 @@ export const uploadImages = async (files: any[]) => {
     return results.map(r => r.secure_url);
 };
 
+const verifyProductOwnership = async (req: Request, productId: string) => {
+    if (!req.user) throw new AppError('Not authenticated', 401);
+
+    const product = await Product.findById(productId);
+    if (!product) throw new AppError('Product not found', 404);
+
+    if (product.seller.toString() !== req.user._id.toString()) {
+        throw new AppError('Not authorized', 403);
+    }
+
+    return product;
+};
+
 export const createProduct = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new AppError('Not authenticated', 401);
+    const userId = req.user._id;
+
     const { name, description, price, category, stock } = req.body;
     const images = await uploadImages(req.files as any[]);
 
     const product = await Product.create({
         name, description, price, category, stock, images,
-        seller: req.user._id,
+        seller: userId,
     });
 
     res.status(201).json({ status: 'success', data: { product } });
@@ -47,11 +63,7 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateProduct = catchAsync(async (req: Request, res: Response) => {
-    const product = await Product.findById(req.params.id);
-    if (!product) throw new AppError('Product not found', 404);
-    if (product.seller.toString() !== req.user._id.toString()) {
-        throw new AppError('Not authorized', 403);
-    }
+    const product = await verifyProductOwnership(req, req.params.id);
 
     Object.assign(product, req.body);
     if (req.files) {
@@ -63,11 +75,7 @@ export const updateProduct = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
-    const product = await Product.findById(req.params.id);
-    if (!product) throw new AppError('Product not found', 404);
-    if (product.seller.toString() !== req.user._id.toString()) {
-        throw new AppError('Not authorized', 403);
-    }
+    const product = await verifyProductOwnership(req, req.params.id);
 
     await product.deleteOne();
     res.status(204).json({ status: 'success', data: null });
