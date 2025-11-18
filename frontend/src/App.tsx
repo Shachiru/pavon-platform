@@ -7,6 +7,7 @@ import {SignupPage} from "./pages/SignupPage"
 import {Dashboard} from "./pages/Dashboard"
 import {HomePage} from "./pages/HomePage"
 import {AddProductPage} from "./pages/AddProductPage"
+import {EditProductPage} from "./pages/EditProductPage"
 
 function App() {
     return (
@@ -21,6 +22,7 @@ function App() {
                         <Route path="/signup" element={<SignupPage/>}/>
                         <Route path="/dashboard" element={<Dashboard/>}/>
                         <Route path="/products/add" element={<AddProductPage/>}/>
+                        <Route path="/products/edit/:id" element={<EditProductPage/>}/>
                         <Route path="*" element={<Navigate to="/" replace/>}/>
                     </Routes>
                 </div>
