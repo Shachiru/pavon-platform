@@ -1,51 +1,100 @@
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import Product from '../models/Product';
-import { catchAsync } from '../utils/catchAsync';
+import {catchAsync} from '../utils/catchAsync';
 import AppError from '../utils/AppError';
+import {UserRole} from '../types';
 
-const verifyProductOwnership = async (req: Request, productId: string) => {
+/**
+ * Verify admin access
+ * Note: This is a safety check. The route is already protected by requireAuth + requireRole middleware
+ */
+const verifyAdminAccess = (req: Request) => {
     if (!req.user) throw new AppError('Not authenticated', 401);
-
-    const product = await Product.findById(productId);
-    if (!product) throw new AppError('Product not found', 404);
-
-    if (product.seller.toString() !== req.user._id.toString()) {
-        throw new AppError('Not authorized', 403);
+    if (req.user.role !== UserRole.ADMIN) {
+        throw new AppError('Only admins can manage products', 403);
     }
-
-    return product;
 };
 
 export const createProduct = catchAsync(async (req: Request, res: Response) => {
-    if (!req.user) throw new AppError('Not authenticated', 401);
-    const userId = req.user._id;
+    verifyAdminAccess(req);
+    const adminId = req.user!._id;
 
-    const { name, description, price, category, stock, images } = req.body;
+    const {
+        name,
+        description,
+        price,
+        category,
+        brand,
+        stock,
+        images,
+        specifications,
+        rating,
+        reviewCount,
+        featured,
+        discount
+    } = req.body;
 
     const product = await Product.create({
         name,
         description,
         price,
         category,
+        brand,
         stock,
-        images,
-        seller: userId,
+        images: images || [],
+        specifications: specifications || {},
+        rating: rating || 0,
+        reviewCount: reviewCount || 0,
+        featured: featured || false,
+        discount: discount || 0,
+        seller: adminId, // Admin who created the product
     });
 
-    res.status(201).json({ status: 'success', data: { product } });
+    res.status(201).json({
+        status: 'success',
+        message: 'Product created successfully',
+        data: {product}
+    });
 });
 
 export const getProducts = catchAsync(async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search, category } = req.query;
+    const {
+        page = 1,
+        limit = 10,
+        search,
+        category,
+        brand,
+        minPrice,
+        maxPrice,
+        featured,
+        sortBy = 'createdAt',
+        order = 'desc'
+    } = req.query;
+
     const query: any = {};
 
-    if (search) query.$text = { $search: search as string };
+    if (search) query.$text = {$search: search as string};
     if (category) query.category = category;
+    if (brand) query.brand = brand;
+    if (featured === 'true') query.featured = true;
+
+    // Price range filter
+    if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = Number(minPrice);
+        if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Sorting
+    const sortOrder = order === 'asc' ? 1 : -1;
+    const sortOptions: any = {};
+    sortOptions[sortBy as string] = sortOrder;
 
     const products = await Product.find(query)
+        .populate('seller', 'name email')
         .skip((+page - 1) * +limit)
         .limit(+limit)
-        .sort({ createdAt: -1 });
+        .sort(sortOptions);
 
     const total = await Product.countDocuments(query);
 
@@ -53,30 +102,78 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
         status: 'success',
         results: products.length,
         total,
-        data: { products },
+        totalPages: Math.ceil(total / +limit),
+        currentPage: +page,
+        data: {products},
+    });
+});
+
+export const getProductById = catchAsync(async (req: Request, res: Response) => {
+    const product = await Product.findById(req.params.id).populate('seller', 'name email');
+
+    if (!product) {
+        throw new AppError('Product not found', 404);
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: {product},
     });
 });
 
 export const updateProduct = catchAsync(async (req: Request, res: Response) => {
-    const product = await verifyProductOwnership(req, req.params.id);
+    verifyAdminAccess(req);
 
-    const { name, description, price, category, stock, images } = req.body;
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+        throw new AppError('Product not found', 404);
+    }
+
+    const {
+        name,
+        description,
+        price,
+        category,
+        brand,
+        stock,
+        images,
+        specifications,
+        rating,
+        reviewCount,
+        featured,
+        discount
+    } = req.body;
 
     if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
     if (price !== undefined) product.price = price;
     if (category !== undefined) product.category = category;
+    if (brand !== undefined) product.brand = brand;
     if (stock !== undefined) product.stock = stock;
     if (images !== undefined) product.images = images;
+    if (specifications !== undefined) product.specifications = specifications;
+    if (rating !== undefined) product.rating = rating;
+    if (reviewCount !== undefined) product.reviewCount = reviewCount;
+    if (featured !== undefined) product.featured = featured;
+    if (discount !== undefined) product.discount = discount;
 
     await product.save();
 
-    res.status(200).json({ status: 'success', data: { product } });
+    res.status(200).json({
+        status: 'success',
+        message: 'Product updated successfully',
+        data: {product}
+    });
 });
 
 export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
-    const product = await verifyProductOwnership(req, req.params.id);
+    verifyAdminAccess(req);
+
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+        throw new AppError('Product not found', 404);
+    }
 
     await product.deleteOne();
-    res.status(204).json({ status: 'success', data: null });
+    res.status(204).json({status: 'success', data: null});
 });
