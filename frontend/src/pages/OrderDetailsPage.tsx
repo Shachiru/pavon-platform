@@ -235,40 +235,51 @@ export const OrderDetailsPage: React.FC = () => {
                 </div>
                 <div className="p-6">
                     <div className="space-y-4">
-                        {order.items.map((item, index) => (
-                            <div
-                                key={item._id || index}
-                                className="flex gap-6 p-4 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                <img
-                                    src={item.product.images[0] || "/placeholder.png"}
-                                    alt={item.product.name}
-                                    className="w-24 h-24 object-cover rounded-lg"
-                                />
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                        {item.product.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        {item.product.category} • {item.product.brand}
-                                    </p>
-                                    <div className="flex items-center gap-4">
-                                        <p className="text-sm text-gray-600">
-                                            Quantity: <span className="font-semibold text-gray-900">{item.quantity}</span>
+                        {order.items.map((item, index) => {
+                            // Handle case where product might not be populated
+                            const productName = item.product?.name || "Product Unavailable"
+                            const productImage = item.product?.images?.[0] || "/placeholder.png"
+                            const productCategory = item.product?.category || "N/A"
+                            const productBrand = item.product?.brand || "N/A"
+
+                            return (
+                                <div
+                                    key={item._id || index}
+                                    className="flex gap-6 p-4 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    <img
+                                        src={productImage}
+                                        alt={productName}
+                                        className="w-24 h-24 object-cover rounded-lg"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "/placeholder.png"
+                                        }}
+                                    />
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                            {productName}
+                                        </h3>
+                                        <p className="text-sm text-gray-600 mb-2">
+                                            {productCategory} • {productBrand}
                                         </p>
-                                        <p className="text-sm text-gray-600">
-                                            Price: <span className="font-semibold text-gray-900">${item.price.toFixed(2)}</span>
+                                        <div className="flex items-center gap-4">
+                                            <p className="text-sm text-gray-600">
+                                                Quantity: <span className="font-semibold text-gray-900">{item.quantity}</span>
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                                Price: <span className="font-semibold text-gray-900">${item.price.toFixed(2)}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-gray-600 mb-1">Subtotal</p>
+                                        <p className="text-xl font-bold text-purple-600">
+                                            ${(item.price * item.quantity).toFixed(2)}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm text-gray-600 mb-1">Subtotal</p>
-                                    <p className="text-xl font-bold text-purple-600">
-                                        ${(item.price * item.quantity).toFixed(2)}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </div>
             </div>

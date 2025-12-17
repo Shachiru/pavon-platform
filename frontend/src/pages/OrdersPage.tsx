@@ -149,24 +149,32 @@ export const OrdersPage: React.FC = () => {
                         {/* Order Items */}
                         <div className="p-6">
                             <div className="space-y-4 mb-4">
-                                {order.items.map((item, index) => (
-                                    <div key={item._id || index} className="flex gap-4 items-center">
-                                        <img
-                                            src={item.product.images[0] || "/placeholder.png"}
-                                            alt={item.product.name}
-                                            className="w-16 h-16 object-cover rounded-lg"
-                                        />
-                                        <div className="flex-1">
-                                            <h4 className="font-semibold text-gray-900">{item.product.name}</h4>
-                                            <p className="text-sm text-gray-600">
-                                                Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                                {order.items.map((item, index) => {
+                                    const productName = item.product?.name || "Product Unavailable"
+                                    const productImage = item.product?.images?.[0] || "/placeholder.png"
+
+                                    return (
+                                        <div key={item._id || index} className="flex gap-4 items-center">
+                                            <img
+                                                src={productImage}
+                                                alt={productName}
+                                                className="w-16 h-16 object-cover rounded-lg"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = "/placeholder.png"
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-gray-900">{productName}</h4>
+                                                <p className="text-sm text-gray-600">
+                                                    Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                                                </p>
+                                            </div>
+                                            <p className="font-bold text-gray-900">
+                                                ${(item.price * item.quantity).toFixed(2)}
                                             </p>
                                         </div>
-                                        <p className="font-bold text-gray-900">
-                                            ${(item.price * item.quantity).toFixed(2)}
-                                        </p>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
 
                             {/* Action Buttons */}

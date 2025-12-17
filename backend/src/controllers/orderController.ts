@@ -117,6 +117,28 @@ export const getMyOrders = catchAsync(async (req: Request, res: Response) => {
     res.status(200).json({status: 'success', data: {orders}});
 });
 
+export const getOrderById = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new AppError('Not authenticated', 401);
+
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId).populate('items.product');
+
+    if (!order) {
+        throw new AppError('Order not found', 404);
+    }
+
+    // Check authorization: user can only view their own orders, admin can view all
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = order.user.toString() === req.user._id.toString();
+
+    if (!isAdmin && !isOwner) {
+        throw new AppError('You do not have permission to view this order', 403);
+    }
+
+    res.status(200).json({status: 'success', data: {order}});
+});
+
 export const getAllOrders = catchAsync(async (req: Request, res: Response) => {
     const orders = await Order.find().populate('user', 'name email').sort({createdAt: -1});
     res.status(200).json({status: 'success', data: {orders}});
