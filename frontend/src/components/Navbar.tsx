@@ -3,10 +3,12 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { useCart } from "../context/CartContext"
 import { ProfileModal } from "./ProfileModal"
 
 export const Navbar = () => {
     const { user, logout } = useAuth()
+    const { itemCount } = useCart()
     const navigate = useNavigate()
     const [isProfileOpen, setIsProfileOpen] = useState(false)
 
@@ -41,14 +43,39 @@ export const Navbar = () => {
 
                         <div className="flex items-center gap-3">
                             {user && (
-                                <button
-                                    onClick={() => navigate("/home")}
-                                    className="relative px-6 py-2.5 text-gray-700 font-medium hover:text-purple-600 transition-colors duration-300 group"
-                                >
-                                    <span className="relative z-10">Products</span>
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => navigate("/home")}
+                                        className="relative px-6 py-2.5 text-gray-700 font-medium hover:text-purple-600 transition-colors duration-300 group"
+                                    >
+                                        <span className="relative z-10">Products</span>
+                                        <div
+                                            className="absolute inset-0 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate("/orders")}
+                                        className="relative px-6 py-2.5 text-gray-700 font-medium hover:text-purple-600 transition-colors duration-300 group"
+                                    >
+                                        <span className="relative z-10">Orders</span>
+                                        <div
+                                            className="absolute inset-0 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate("/cart")}
+                                        className="relative p-2.5 text-gray-700 hover:text-purple-600 transition-colors duration-300 group"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                        </svg>
+                                        {itemCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
+                                                {itemCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </>
                             )}
                             {!user ? (
                                 <>

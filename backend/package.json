@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "create-admin": "ts-node-dev --transpile-only src/scripts/createAdmin.ts",
-    "reset-admin-password": "ts-node-dev --transpile-only src/scripts/resetAdminPassword.ts"
+    "reset-admin-password": "ts-node-dev --transpile-only src/scripts/resetAdminPassword.ts",
+    "test-transactions": "ts-node-dev --transpile-only src/scripts/testTransactions.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

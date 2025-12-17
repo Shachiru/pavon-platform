@@ -1,19 +1,31 @@
 "use client"
 
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { useCart } from "../context/CartContext"
 import { useProducts } from "../hooks/useProducts"
 import { ProductCard } from "../components/ProductCard"
+import { Toast } from "../components/ui/Toast"
 
 export const HomePage = () => {
     const { products, loading, error, deleteLoading, deleteProduct } = useProducts()
+    const { addToCart } = useCart()
     const navigate = useNavigate()
     const { user } = useAuth()
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+    const [addingToCart, setAddingToCart] = useState<string | null>(null)
 
-    const handleAddToCart = (productId: string) => {
-        // Add to cart logic here
-        console.log("Add to cart:", productId)
-        alert("Product added to cart! (Cart functionality coming soon)")
+    const handleAddToCart = async (productId: string) => {
+        setAddingToCart(productId)
+        try {
+            await addToCart(productId, 1)
+            setToast({ message: "Product added to cart successfully!", type: "success" })
+        } catch (error: any) {
+            setToast({ message: error.message || "Failed to add to cart", type: "error" })
+        } finally {
+            setAddingToCart(null)
+        }
     }
 
     if (loading) {
@@ -41,6 +53,14 @@ export const HomePage = () => {
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
             {/* Header */}
             <div className="mb-12 text-center">
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Products</h1>
