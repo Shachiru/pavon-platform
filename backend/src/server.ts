@@ -31,10 +31,21 @@ app.use('/api/orders', orderRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(process.env.MONGO_URI!)
+if (!MONGO_URI) {
+    logger.error('MONGO_URI is not defined in environment variables');
+    process.exit(1);
+}
+
+logger.info(`Attempting to connect to MongoDB at: ${MONGO_URI.replace(/:([^:@]+)@/, ':****@')}`);
+
+mongoose.connect(MONGO_URI)
     .then(() => {
         logger.info('MongoDB connected');
         app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
     })
-    .catch(err => logger.error('MongoDB connection error:', err));
+    .catch(err => {
+        logger.error('MongoDB connection error:', err);
+        process.exit(1);
+    });

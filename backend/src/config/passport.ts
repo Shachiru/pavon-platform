@@ -1,7 +1,7 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import {Strategy as GoogleStrategy} from 'passport-google-oauth20';
 import User from '../models/User';
-import { UserRole } from '../types';
+import {UserRole} from '../types';
 
 passport.use(
     new GoogleStrategy(
@@ -12,7 +12,7 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user = await User.findOne({ googleId: profile.id });
+                let user = await User.findOne({googleId: profile.id});
                 if (user) return done(null, user);
 
                 const email = profile.emails?.[0].value;
