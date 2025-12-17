@@ -1,8 +1,8 @@
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import Product from '../models/Product';
-import {catchAsync} from '../utils/catchAsync';
+import { catchAsync } from '../utils/catchAsync';
 import AppError from '../utils/AppError';
-import {UserRole} from '../types';
+import { UserRole, ProductQuery, CreateProductBody, UpdateProductBody, SortOption } from '../types';
 
 /**
  * Verify admin access
@@ -15,7 +15,7 @@ const verifyAdminAccess = (req: Request) => {
     }
 };
 
-export const createProduct = catchAsync(async (req: Request, res: Response) => {
+export const createProduct = catchAsync(async (req: Request<{}, {}, CreateProductBody>, res: Response) => {
     verifyAdminAccess(req);
     const adminId = req.user!._id;
 
@@ -53,14 +53,14 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     res.status(201).json({
         status: 'success',
         message: 'Product created successfully',
-        data: {product}
+        data: { product }
     });
 });
 
-export const getProducts = catchAsync(async (req: Request, res: Response) => {
+export const getProducts = catchAsync(async (req: Request<{}, {}, {}, ProductQuery>, res: Response) => {
     const {
-        page = 1,
-        limit = 10,
+        page = '1',
+        limit = '10',
         search,
         category,
         brand,
@@ -73,7 +73,7 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
 
     const query: any = {};
 
-    if (search) query.$text = {$search: search as string};
+    if (search) query.$text = { $search: search };
     if (category) query.category = category;
     if (brand) query.brand = brand;
     if (featured === 'true') query.featured = true;
@@ -87,13 +87,17 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
 
     // Sorting
     const sortOrder = order === 'asc' ? 1 : -1;
-    const sortOptions: any = {};
-    sortOptions[sortBy as string] = sortOrder;
+    const sortOptions: SortOption = {
+        [sortBy]: sortOrder
+    };
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
 
     const products = await Product.find(query)
         .populate('seller', 'name email')
-        .skip((+page - 1) * +limit)
-        .limit(+limit)
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
         .sort(sortOptions);
 
     const total = await Product.countDocuments(query);
@@ -102,9 +106,9 @@ export const getProducts = catchAsync(async (req: Request, res: Response) => {
         status: 'success',
         results: products.length,
         total,
-        totalPages: Math.ceil(total / +limit),
-        currentPage: +page,
-        data: {products},
+        totalPages: Math.ceil(total / limitNum),
+        currentPage: pageNum,
+        data: { products },
     });
 });
 
@@ -117,11 +121,11 @@ export const getProductById = catchAsync(async (req: Request, res: Response) => 
 
     res.status(200).json({
         status: 'success',
-        data: {product},
+        data: { product },
     });
 });
 
-export const updateProduct = catchAsync(async (req: Request, res: Response) => {
+export const updateProduct = catchAsync(async (req: Request<{ id: string }, {}, UpdateProductBody>, res: Response) => {
     verifyAdminAccess(req);
 
     const product = await Product.findById(req.params.id);
@@ -162,7 +166,7 @@ export const updateProduct = catchAsync(async (req: Request, res: Response) => {
     res.status(200).json({
         status: 'success',
         message: 'Product updated successfully',
-        data: {product}
+        data: { product }
     });
 });
 
@@ -175,5 +179,5 @@ export const deleteProduct = catchAsync(async (req: Request, res: Response) => {
     }
 
     await product.deleteOne();
-    res.status(204).json({status: 'success', data: null});
+    res.status(204).json({ status: 'success', data: null });
 });

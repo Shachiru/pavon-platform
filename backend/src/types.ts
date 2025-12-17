@@ -1,4 +1,4 @@
-import {Types, Document, Model} from "mongoose";
+import { Types, Document, Model } from "mongoose";
 
 export enum UserRole {
     USER = 'user',
@@ -47,3 +47,37 @@ declare global {
         }
     }
 }
+
+export type ProductCategory = 'Phones' | 'Laptops' | 'Tablets' | 'Smartwatches' | 'Headphones' | 'Accessories' | 'Other';
+
+export interface ProductQuery {
+    page?: string;
+    limit?: string;
+    search?: string;
+    category?: ProductCategory;
+    brand?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    featured?: string;
+    sortBy?: string;
+    order?: 'asc' | 'desc';
+}
+
+export interface CreateProductBody {
+    name: string;
+    description: string;
+    price: number;
+    category: ProductCategory;
+    brand: string;
+    stock: number;
+    images?: string[];
+    specifications?: Record<string, string>;
+    rating?: number;
+    reviewCount?: number;
+    featured?: boolean;
+    discount?: number;
+}
+
+export interface UpdateProductBody extends Partial<CreateProductBody> { }
+
+export type SortOption = { [key: string]: 1 | -1 };
