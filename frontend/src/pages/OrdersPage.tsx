@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Order, OrderStatus } from "../types"
+import { useAuth } from "../context/AuthContext"
 import axios from "axios"
 import {Badge, Button, EmptyState, Modal, Toast} from "../components/ui";
 
@@ -22,11 +23,19 @@ const getStatusBadgeVariant = (status: OrderStatus): "default" | "success" | "wa
 
 export const OrdersPage: React.FC = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
     const [cancellingOrder, setCancellingOrder] = useState<string | null>(null)
     const [showCancelModal, setShowCancelModal] = useState<string | null>(null)
+
+    // Redirect admins to admin orders page
+    useEffect(() => {
+        if (user && user.role === "admin") {
+            navigate("/admin/orders")
+        }
+    }, [user, navigate])
 
     useEffect(() => {
         fetchOrders()

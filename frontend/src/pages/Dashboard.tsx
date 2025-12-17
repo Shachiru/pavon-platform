@@ -60,9 +60,12 @@ export const Dashboard = () => {
                             </svg>
                         </div>
                     </div>
-                    <h2 className="text-lg font-semibold text-gray-900">View Orders</h2>
-                    <p className="mt-2 text-gray-600 text-sm">Monitor and manage customer orders</p>
-                    <button className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors font-medium">
+                    <h2 className="text-lg font-semibold text-gray-900">Manage Orders</h2>
+                    <p className="mt-2 text-gray-600 text-sm">Monitor and confirm customer orders</p>
+                    <button
+                        onClick={() => navigate("/admin/orders")}
+                        className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition-colors font-medium"
+                    >
                         Go to Orders
                     </button>
                 </div>

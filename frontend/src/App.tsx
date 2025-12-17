@@ -12,6 +12,7 @@ import {EditProductPage} from "./pages/EditProductPage"
 import {CartPage} from "./pages/CartPage"
 import {OrdersPage} from "./pages/OrdersPage"
 import {OrderDetailsPage} from "./pages/OrderDetailsPage"
+import {AdminOrdersPage} from "./pages/AdminOrdersPage"
 
 function App() {
     return (
@@ -31,6 +32,7 @@ function App() {
                             <Route path="/cart" element={<CartPage/>}/>
                             <Route path="/orders" element={<OrdersPage/>}/>
                             <Route path="/orders/:id" element={<OrderDetailsPage/>}/>
+                            <Route path="/admin/orders" element={<AdminOrdersPage/>}/>
                             <Route path="*" element={<Navigate to="/" replace/>}/>
                         </Routes>
                     </div>

@@ -1,6 +1,7 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext"
+import { useAuth } from "../context/AuthContext"
 import axios from "axios"
 import {Badge, Button, EmptyState, Modal, Toast} from "../components/ui";
 
@@ -11,12 +12,20 @@ const api = axios.create({
 
 export const CartPage: React.FC = () => {
     const navigate = useNavigate()
+    const { user } = useAuth()
     const { cart, loading, itemCount, totalAmount, updateCartItem, removeFromCart, clearCart } = useCart()
     const [updatingItem, setUpdatingItem] = useState<string | null>(null)
     const [removingItem, setRemovingItem] = useState<string | null>(null)
     const [isCreatingOrder, setIsCreatingOrder] = useState(false)
     const [showClearModal, setShowClearModal] = useState(false)
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+
+    // Redirect admins away from cart page
+    useEffect(() => {
+        if (user && user.role === "admin") {
+            navigate("/dashboard")
+        }
+    }, [user, navigate])
 
     const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
         if (newQuantity < 1) return
@@ -56,7 +65,7 @@ export const CartPage: React.FC = () => {
     const handleCreateOrder = async () => {
         setIsCreatingOrder(true)
         try {
-            const response = await api.post("/orders")
+            await api.post("/orders")
             setToast({ message: "Order created successfully!", type: "success" })
             setTimeout(() => {
                 navigate("/orders")

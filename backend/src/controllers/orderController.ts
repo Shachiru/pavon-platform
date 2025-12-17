@@ -9,6 +9,12 @@ import { OrderStatus } from '../types';
 
 export const createOrder = catchAsync(async (req: Request, res: Response) => {
     if (!req.user) throw new AppError('Not authenticated', 401);
+
+    // Prevent admins from placing orders
+    if (req.user.role === 'admin') {
+        throw new AppError('Admins cannot place orders. Only regular users can make purchases.', 403);
+    }
+
     const userId = req.user._id;
 
     // Start a MongoDB session for transaction
@@ -142,6 +148,38 @@ export const getOrderById = catchAsync(async (req: Request, res: Response) => {
 export const getAllOrders = catchAsync(async (req: Request, res: Response) => {
     const orders = await Order.find().populate('user', 'name email').sort({createdAt: -1});
     res.status(200).json({status: 'success', data: {orders}});
+});
+
+export const confirmOrder = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) throw new AppError('Not authenticated', 401);
+
+    // Only admins can confirm orders
+    if (req.user.role !== 'admin') {
+        throw new AppError('Only admins can confirm orders', 403);
+    }
+
+    const orderId = req.params.id;
+
+    const order = await Order.findById(orderId).populate('items.product');
+
+    if (!order) {
+        throw new AppError('Order not found', 404);
+    }
+
+    // Can only confirm pending orders
+    if (order.status !== 'pending') {
+        throw new AppError(`Cannot confirm order with status: ${order.status}. Only pending orders can be confirmed.`, 400);
+    }
+
+    // Update order status to confirmed
+    order.status = OrderStatus.CONFIRMED;
+    await order.save();
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Order confirmed successfully',
+        data: { order }
+    });
 });
 
 export const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
